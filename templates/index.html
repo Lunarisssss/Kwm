@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyberpunk Quiz - Secret Reward</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --neon-blue: #00f3ff; --dark-bg: #050510; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Prompt', sans-serif; user-select: none; }
+        body { background-color: var(--dark-bg); color: #fff; overflow: hidden; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        canvas { position: fixed; top: 0; left: 0; z-index: -1; opacity: 0.8; }
+        .glass-panel { background: rgba(5, 15, 35, 0.55); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(0, 243, 255, 0.3); box-shadow: 0 0 20px rgba(0, 243, 255, 0.2), inset 0 0 15px rgba(0, 243, 255, 0.1); border-radius: 20px; padding: 2rem; width: 90%; max-width: 500px; text-align: center; position: relative; z-index: 1; transition: all 0.3s ease; }
+        h1, h2 { color: var(--neon-blue); text-shadow: 0 0 10px var(--neon-blue); margin-bottom: 1rem; }
+        .question-text { font-size: 1.2rem; margin-bottom: 1.5rem; line-height: 1.5; min-height: 3.5rem; }
+        .options { display: flex; flex-direction: column; gap: 10px; }
+        .btn-neon { background: rgba(0, 243, 255, 0.05); color: var(--neon-blue); border: 1px solid var(--neon-blue); padding: 12px 20px; font-size: 1rem; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 0 5px rgba(0, 243, 255, 0.3); }
+        .btn-neon:hover { background: var(--neon-blue); color: #000; box-shadow: 0 0 15px var(--neon-blue), 0 0 30px var(--neon-blue); font-weight: 600; }
+        .hidden { display: none !important; }
+        .video-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 10px; margin-bottom: 1.5rem; border: 1px solid var(--neon-blue); box-shadow: 0 0 15px var(--neon-blue); }
+        .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        .score-text { font-size: 1.5rem; margin-bottom: 1rem; color: #fff; }
+        @media (max-width: 480px) { .glass-panel { padding: 1.5rem; } .question-text { font-size: 1.1rem; } .btn-neon { padding: 10px 15px; font-size: 0.95rem; } }
+    </style>
+</head>
+<body>
+    <canvas id="matrix"></canvas>
+    <div class="glass-panel" id="quiz-container">
+        <h1>CYBER QUIZ 2077</h1>
+        <div id="progress">ข้อ <span id="current-q-num">1</span>/10</div>
+        <p class="question-text" id="question">กำลังโหลดคำถาม...</p>
+        <div class="options" id="options"></div>
+    </div>
+    <div class="glass-panel hidden" id="reward-container">
+        <h2>✨ SECRET REWARD ✨</h2>
+        <div class="score-text">คุณตอบถูก <span id="final-score" style="color: var(--neon-blue); font-weight: bold;">0</span>/10 ข้อ</div>
+        <p id="reward-message" style="margin-bottom: 1rem; font-size: 0.9rem; color: #ccc;"></p>
+        <div class="video-container">
+            <iframe id="reward-video" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+        <button class="btn-neon" onclick="restartQuiz()" style="width: 100%;">🔄 เล่นใหม่อีกครั้ง</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('matrix');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        const alphabet = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレゲゼデベペオォコソトノホモヨョロゴゾドボポヴッンABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        const fontSize = 16;
+        const columns = canvas.width / fontSize;
+        const rainDrops = Array.from({ length: columns }).fill(canvas.height);
+
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(5, 5, 16, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#00f3ff';
+            ctx.font = fontSize + 'px monospace';
+            for (let i = 0; i < rainDrops.length; i++) {
+                const text = alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+                ctx.fillText(text, i * fontSize, rainDrops[i] * fontSize);
+                if (rainDrops[i] * fontSize > canvas.height && Math.random() > 0.975) { rainDrops[i] = 0; }
+                rainDrops[i]++;
+            }
+        }
+        setInterval(drawMatrix, 30);
+        window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
+
+        const quizData = [
+            { question: "สมมุติว่าคุณวิ่งแข่ง แล้วแซงคนที่ 2 ได้ ตอนนี้คุณอยู่ลำดับที่เท่าไหร่?", options: ["ที่ 1", "ที่ 2", "ที่ 3", "ที่ 4"], answer: 1 },
+            { question: "เดือนอะไรมี 32 วัน?", options: ["เดือนกุมภาพันธ์", "เดือนลงท้ายด้วยคม", "เดือนชนเดือน", "เดือนหน้า"], answer: 2 },
+            { question: "ปลาอะไรสองตัว 20?", options: ["ปลาทู", "ปลาดุก", "ปลาไหล", "ปลาซาว"], answer: 3 },
+            { question: "ทอดหมูยังไงไม่ให้ติดกระทะ?", options: ["ใส่น้ำมันเยอะๆ", "ทอดในหม้อ", "ใช้ไฟอ่อนๆ", "ใช้กระทะเทฟลอน"], answer: 1 },
+            { question: "เกาะอะไรมีเสาไฟฟ้าเยอะที่สุด?", options: ["เกาะสมุย", "เกาะล้าน", "เกาะกลางถนน", "เกาะช้าง"], answer: 2 },
+            { question: "นกอะไร ปากอยู่ใต้เท้า ปีกก็อยู่ใต้เท้า?", options: ["นกกระจอกเทศ", "นกเพนกวิน", "นกแก้ว", "นกถูกเหยียบ"], answer: 3 },
+            { question: "สัตว์อะไรเอ่ย ห้ามอ่านหนังสือ?", options: ["แกะ (ห้ามแกะอ่าน)", "สุนัข", "แมว", "นกฮูก"], answer: 0 },
+            { question: "รถอะไรยาวที่สุด?", options: ["รถไฟ", "รถพ่วง", "รถติด", "รถบรรทุก"], answer: 2 },
+            { question: "อะไรเอ่ย ยิ่งตัด ยิ่งยาว?", options: ["เส้นผม", "ถนน", "เล็บ", "เชือก"], answer: 1 },
+            { question: "โรคอะไรถูกที่สุด?", options: ["โรคทรัพย์จาง", "โรคติดต่อ", "โรคหอบ (หอบบาทเดียว)", "โรคระบาด"], answer: 2 }
+        ];
+
+        let currentQuestionIndex = 0, score = 0;
+        const quizContainer = document.getElementById('quiz-container'), rewardContainer = document.getElementById('reward-container');
+        const questionEl = document.getElementById('question'), optionsEl = document.getElementById('options');
+        const currentQNumEl = document.getElementById('current-q-num'), rewardVideo = document.getElementById('reward-video');
+        const finalScoreEl = document.getElementById('final-score'), rewardMessageEl = document.getElementById('reward-message');
+
+        function loadQuestion() {
+            const currentQuiz = quizData[currentQuestionIndex];
+            currentQNumEl.innerText = currentQuestionIndex + 1;
+            questionEl.innerText = currentQuiz.question;
+            optionsEl.innerHTML = '';
+            currentQuiz.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.innerText = option;
+                button.classList.add('btn-neon');
+                button.onclick = () => selectAnswer(index);
+                optionsEl.appendChild(button);
+            });
+        }
+
+        function selectAnswer(selectedIndex) {
+            if (selectedIndex === quizData[currentQuestionIndex].answer) score++;
+            currentQuestionIndex++;
+            if (currentQuestionIndex < quizData.length) loadQuestion();
+            else showReward();
+        }
+
+        function showReward() {
+            quizContainer.classList.add('hidden');
+            rewardContainer.classList.remove('hidden');
+            finalScoreEl.innerText = score;
+            if (score <= 5) {
+                rewardMessageEl.innerText = "โดนแกงไปหลายข้อล่ะสิ! รับรางวัลปลอบใจไปเลย";
+                rewardVideo.src = "https://www.youtube.com/embed/ZAuyuR_c_BU?autoplay=1";
+            } else {
+                rewardMessageEl.innerText = "เซียนความกวน! รับรางวัลระดับเทพไปเลย";
+                rewardVideo.src = "https://www.youtube.com/embed/RuN9wp3gAqA?autoplay=1";
+            }
+        }
+
+        function restartQuiz() {
+            score = 0; currentQuestionIndex = 0; rewardVideo.src = "";
+            rewardContainer.classList.add('hidden'); quizContainer.classList.remove('hidden');
+            loadQuestion();
+        }
+        loadQuestion();
+    </script>
+</body>
+</html>
