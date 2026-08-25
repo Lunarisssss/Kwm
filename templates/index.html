@@ -10,16 +10,21 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Prompt', sans-serif; user-select: none; }
         body { background-color: var(--dark-bg); color: #fff; overflow: hidden; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
         canvas { position: fixed; top: 0; left: 0; z-index: -1; opacity: 0.8; }
+        
         .glass-panel { background: rgba(5, 15, 35, 0.55); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(0, 243, 255, 0.3); box-shadow: 0 0 20px rgba(0, 243, 255, 0.2), inset 0 0 15px rgba(0, 243, 255, 0.1); border-radius: 20px; padding: 2rem; width: 90%; max-width: 500px; text-align: center; position: relative; z-index: 1; transition: all 0.3s ease; }
         h1, h2 { color: var(--neon-blue); text-shadow: 0 0 10px var(--neon-blue); margin-bottom: 1rem; }
         .question-text { font-size: 1.2rem; margin-bottom: 1.5rem; line-height: 1.5; min-height: 3.5rem; }
         .options { display: flex; flex-direction: column; gap: 10px; }
-        .btn-neon { background: rgba(0, 243, 255, 0.05); color: var(--neon-blue); border: 1px solid var(--neon-blue); padding: 12px 20px; font-size: 1rem; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 0 5px rgba(0, 243, 255, 0.3); }
+        
+        .btn-neon { background: rgba(0, 243, 255, 0.05); color: var(--neon-blue); border: 1px solid var(--neon-blue); padding: 12px 20px; font-size: 1rem; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 0 5px rgba(0, 243, 255, 0.3); display: block; text-decoration: none; }
         .btn-neon:hover { background: var(--neon-blue); color: #000; box-shadow: 0 0 15px var(--neon-blue), 0 0 30px var(--neon-blue); font-weight: 600; }
+        
+        .btn-youtube { background: rgba(255, 0, 0, 0.1); color: #ff4d4d; border: 1px solid #ff4d4d; margin-bottom: 1.5rem; box-shadow: 0 0 5px rgba(255, 0, 0, 0.3); }
+        .btn-youtube:hover { background: #ff4d4d; color: #fff; box-shadow: 0 0 15px #ff4d4d, 0 0 30px #ff4d4d; }
+
         .hidden { display: none !important; }
-        .video-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 10px; margin-bottom: 1.5rem; border: 1px solid var(--neon-blue); box-shadow: 0 0 15px var(--neon-blue); }
-        .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
         .score-text { font-size: 1.5rem; margin-bottom: 1rem; color: #fff; }
+        
         @media (max-width: 480px) { .glass-panel { padding: 1.5rem; } .question-text { font-size: 1.1rem; } .btn-neon { padding: 10px 15px; font-size: 0.95rem; } }
     </style>
 </head>
@@ -31,13 +36,17 @@
         <p class="question-text" id="question">กำลังโหลดคำถาม...</p>
         <div class="options" id="options"></div>
     </div>
+    
     <div class="glass-panel hidden" id="reward-container">
         <h2>✨ SECRET REWARD ✨</h2>
         <div class="score-text">คุณตอบถูก <span id="final-score" style="color: var(--neon-blue); font-weight: bold;">0</span>/10 ข้อ</div>
-        <p id="reward-message" style="margin-bottom: 1rem; font-size: 0.9rem; color: #ccc;"></p>
-        <div class="video-container">
-            <iframe id="reward-video" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-        </div>
+        <p id="reward-message" style="margin-bottom: 1.5rem; font-size: 0.9rem; color: #ccc;"></p>
+        
+        <!-- ปุ่มกดไป YouTube -->
+        <a id="reward-link" href="#" target="_blank" class="btn-neon btn-youtube">
+            ▶️ กดรับของรางวัลที่นี่ (ไปที่ YouTube)
+        </a>
+
         <button class="btn-neon" onclick="restartQuiz()" style="width: 100%;">🔄 เล่นใหม่อีกครั้ง</button>
     </div>
 
@@ -66,23 +75,25 @@
         setInterval(drawMatrix, 30);
         window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
 
+        // คำถามหมวดสัตว์
         const quizData = [
-            { question: "สมมุติว่าคุณวิ่งแข่ง แล้วแซงคนที่ 2 ได้ ตอนนี้คุณอยู่ลำดับที่เท่าไหร่?", options: ["ที่ 1", "ที่ 2", "ที่ 3", "ที่ 4"], answer: 1 },
-            { question: "เดือนอะไรมี 32 วัน?", options: ["เดือนกุมภาพันธ์", "เดือนลงท้ายด้วยคม", "เดือนชนเดือน", "เดือนหน้า"], answer: 2 },
-            { question: "ปลาอะไรสองตัว 20?", options: ["ปลาทู", "ปลาดุก", "ปลาไหล", "ปลาซาว"], answer: 3 },
-            { question: "ทอดหมูยังไงไม่ให้ติดกระทะ?", options: ["ใส่น้ำมันเยอะๆ", "ทอดในหม้อ", "ใช้ไฟอ่อนๆ", "ใช้กระทะเทฟลอน"], answer: 1 },
-            { question: "เกาะอะไรมีเสาไฟฟ้าเยอะที่สุด?", options: ["เกาะสมุย", "เกาะล้าน", "เกาะกลางถนน", "เกาะช้าง"], answer: 2 },
-            { question: "นกอะไร ปากอยู่ใต้เท้า ปีกก็อยู่ใต้เท้า?", options: ["นกกระจอกเทศ", "นกเพนกวิน", "นกแก้ว", "นกถูกเหยียบ"], answer: 3 },
-            { question: "สัตว์อะไรเอ่ย ห้ามอ่านหนังสือ?", options: ["แกะ (ห้ามแกะอ่าน)", "สุนัข", "แมว", "นกฮูก"], answer: 0 },
-            { question: "รถอะไรยาวที่สุด?", options: ["รถไฟ", "รถพ่วง", "รถติด", "รถบรรทุก"], answer: 2 },
-            { question: "อะไรเอ่ย ยิ่งตัด ยิ่งยาว?", options: ["เส้นผม", "ถนน", "เล็บ", "เชือก"], answer: 1 },
-            { question: "โรคอะไรถูกที่สุด?", options: ["โรคทรัพย์จาง", "โรคติดต่อ", "โรคหอบ (หอบบาทเดียว)", "โรคระบาด"], answer: 2 }
+            { question: "ปลาอะไรเอ่ย ขี้เกียจที่สุด?", options: ["ปลาทู", "ปลาช่อน", "ปลาวาฬ", "ปลาตาย"], answer: 2 },
+            { question: "เต่าอะไรเอ่ย ว่ายน้ำไม่ได้?", options: ["เต่าตนุ", "เต่าเหยียบโลก", "เต่าทะเล", "เต่ามะเฟือง"], answer: 1 },
+            { question: "ปลาอะไรเอ่ย เป็นสุภาพบุรุษ?", options: ["ปลาทอง", "ปลาคาร์ฟ", "ปลาช่อน", "ปลาไหล"], answer: 1 },
+            { question: "หมาอะไรเอ่ย ตีไม่ได้เด็ดขาด?", options: ["หมาพิทบูล", "หมาบ้า", "หมาตำรวจ", "หมาของแม่"], answer: 2 },
+            { question: "มดอะไรเอ่ย ตัวใหญ่กว่า 'มดเอ็กซ์'?", options: ["มดดำ", "มดแดง", "มดเอ็กซ์แอล", "มดตะนอย"], answer: 2 },
+            { question: "ไก่อะไรเอ่ย เป็นฆาตกร?", options: ["ไก่ชน", "ไก่งวง", "ไก่อบฟาง", "ไก่จิกเด็กตายบนปากโอ่ง"], answer: 3 },
+            { question: "ปลาอะไรเอ่ย สองตัวยี่สิบ?", options: ["ปลาทู", "ปลาซาว", "ปลาดุก", "ปลาไหล"], answer: 1 },
+            { question: "กุ้งอะไรเอ่ย ร้องเพลงลิเกได้?", options: ["กุ้งแม่น้ำ", "กุ้ง สุธิราช", "กุ้งแช่น้ำปลา", "กุ้งแห้ง"], answer: 1 },
+            { question: "หอยอะไรเอ่ย ไม่มีเปลือก?", options: ["หอยทาก", "หอยแครง", "หอยหลอด", "หอยที่แกะแล้ว"], answer: 3 },
+            { question: "ม้าอะไรเอ่ย มีสีแดง?", options: ["ม้าลาย", "ม้าดม", "ม้าเขือเทศ", "ม้ากระทืบโรง"], answer: 2 }
         ];
 
         let currentQuestionIndex = 0, score = 0;
         const quizContainer = document.getElementById('quiz-container'), rewardContainer = document.getElementById('reward-container');
         const questionEl = document.getElementById('question'), optionsEl = document.getElementById('options');
-        const currentQNumEl = document.getElementById('current-q-num'), rewardVideo = document.getElementById('reward-video');
+        const currentQNumEl = document.getElementById('current-q-num');
+        const rewardLink = document.getElementById('reward-link');
         const finalScoreEl = document.getElementById('final-score'), rewardMessageEl = document.getElementById('reward-message');
 
         function loadQuestion() {
@@ -110,18 +121,21 @@
             quizContainer.classList.add('hidden');
             rewardContainer.classList.remove('hidden');
             finalScoreEl.innerText = score;
+            
+            // เช็คคะแนนแล้วเปลี่ยนลิ้งก์ให้ตรงตามเงื่อนไข
             if (score <= 5) {
                 rewardMessageEl.innerText = "โดนแกงไปหลายข้อล่ะสิ! รับรางวัลปลอบใจไปเลย";
-                rewardVideo.src = "https://www.youtube.com/embed/ZAuyuR_c_BU?autoplay=1";
+                rewardLink.href = "https://youtube.com/shorts/WmAMWFVm6Ro?si=k0aKt12gvUd-Ve-1";
             } else {
                 rewardMessageEl.innerText = "เซียนความกวน! รับรางวัลระดับเทพไปเลย";
-                rewardVideo.src = "https://www.youtube.com/embed/RuN9wp3gAqA?autoplay=1";
+                rewardLink.href = "https://youtu.be/uOk0EgEYDvo?si=UeG-F9RlLotIabLj";
             }
         }
 
         function restartQuiz() {
-            score = 0; currentQuestionIndex = 0; rewardVideo.src = "";
-            rewardContainer.classList.add('hidden'); quizContainer.classList.remove('hidden');
+            score = 0; currentQuestionIndex = 0;
+            rewardContainer.classList.add('hidden'); 
+            quizContainer.classList.remove('hidden');
             loadQuestion();
         }
         loadQuestion();
